@@ -1,0 +1,22 @@
+TODO:
+  * Docstrings
+  * Config everything
+  Replace print with echo
+  Remove type head - no arguments calls pandas head and summary and then prompts
+  Set x and y limits (xmin,xmax or xmin,xmax,xinc)
+  Plot by index
+  Load from multiple files
+  Select Event to zoom
+  Z = size
+  Z = frame
+  TailF functionality
+  Animate
+  Autocomplete command line
+  Use Header to prompt for columns
+  bitbuck pipeline
+    black
+    mypy
+    pylint
+    pytest
+  Move bitbucket:plot to github:cli_plot
+  Load from tcp
