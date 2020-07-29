@@ -25,35 +25,6 @@ from .functions import sine_wave, cosine_wave, normal, damped_sine_wave, datafra
 __version__ = "0.0.1"
 
 
-config = Config(
-    figure_size=(11, 8.5),  # plt.figure
-    figure_face_color="#CCCCCC",  # rc
-    plot_face_color="#002000",  # rc
-    series_colors=(  # rc.axes.prop_cycle
-        "lime",
-        "orange",
-        "cyan",
-        "magenta",
-        "red",
-        "blue",
-        "green",
-        "gray",
-    ),
-    legend_face_color="#001000",  # Plot
-    legend_edge_color="#00FF00",  # Plot
-    legend_text_color="#00FF00",  # Plot
-    grid_major_on=True,  # Plot
-    grid_major_color="#00FF00",  # Plot
-    grid_major_alpha=0.2,  # Plot
-    grid_major_wdith=2,  # Plot
-    grid_minor_on=True,  # Plot
-    grid_minor_color="#008000",  # Plot
-    grid_minor_alpha=0.2,  # Plot
-    grid_minor_wdith=1,  # Plot
-    image_dpi=300,
-)
-
-
 class PlotType(str, Enum):
     """ TODO """
 
@@ -71,74 +42,82 @@ class Context(str, Enum):
     poster = "poster"
 
 
-class Style(str, Enum):
-    """ Seaborn style set the axes background and gridlines """
+config = Config(
+    figure_size=(11, 8.5),
+    figure_face_color="#CCCCCC",  # rc
+    text_color="dimgrey",
+    savefig_dpi=300,
+    plot_face_color="#002000",  # rc
+    series_colors=(  # rc.axes.prop_cycle
+        "lime",
+        "orange",
+        "cyan",
+        "magenta",
+        "red",
+        "blue",
+        "green",
+        "gray",
+    ),
+    legend_face_color="#001000",
+    legend_edge_color="#00FF00",
+    legend_text_color="#00FF00",  # TODO: Cannot be set by RC - do by plot
+    grid_on=True,
+    grid_major_color="#00FF00",
+    grid_major_alpha=0.2,
+    grid_width=1.5,
+    grid_minor_on=True,
+    grid_minor_color="#008000",  # Cannot be set by RC
+    grid_minor_alpha=0.2,  # Cannot be set by RC
+)
 
-    darkgrid = "darkgrid"
-    whitegrid = "whitegrid"
-    dark = "dark"
-    white = "white"
-    ticks = "ticks"
 
-
-def setup(context: Context = Context.notebook, style: Style = Style.darkgrid,) -> None:
+def setup(context: Context = Context.notebook) -> None:
     """ TODO """
 
     rc = {
-        "figure.facecolor": config.figure_face_color,
-        # "figure.patch.facecolor": config.figure_face_color,
-        # "axes.facecolor": config.plot_face_color,
-        "axes.prop_cycle": plt.cycler(color=config.series_colors),
         "axes.axisbelow": False,
         "axes.edgecolor": "lightgrey",
         "axes.facecolor": config.plot_face_color,
-        "axes.grid": False,
-        "axes.labelcolor": "dimgrey",
+        "axes.grid": config.grid_on,
+        "axes.grid.axis": "both",
+        "axes.grid.which": "both" if config.grid_minor_on else "major",
+        "axes.labelcolor": config.text_color,
+        "axes.prop_cycle": plt.cycler(color=config.series_colors),
         "axes.spines.right": False,
         "axes.spines.top": False,
+        "figure.facecolor": config.figure_face_color,
+        "figure.figsize": config.figure_size,
+        "grid.alpha": config.grid_major_alpha,
+        "grid.color": config.grid_major_color,
+        "grid.linestyle": "-",
+        "grid.linewidth": config.grid_width,
+        "legend.loc": "best",
+        "legend.frameon": False,
+        "legend.facecolor": config.legend_face_color,
+        "legend.edgecolor": config.legend_edge_color,
         "lines.solid_capstyle": "round",
         "patch.edgecolor": "w",
         "patch.force_edgecolor": True,
-        "text.color": "dimgrey",
-        # "grid.color": config.grid_major_color,
+        "savefig.dpi": config.savefig_dpi,
+        "text.color": config.text_color,
         "xtick.bottom": False,
-        "xtick.color": "dimgrey",
+        "xtick.color": config.text_color,
         "xtick.direction": "out",
         "xtick.top": False,
-        "ytick.color": "dimgrey",
+        "ytick.color": config.text_color,
         "ytick.direction": "out",
         "ytick.left": False,
         "ytick.right": False,
+        "toolbar": "None",
     }
 
     sns.set(
         context=context,
-        style=style,
         palette="deep",
         font="DejaVu Sans",
         font_scale=1,
         color_codes=True,
         rc=rc,
-    )
-    mpl.rcParams["toolbar"] = "None"
-    # print(sns.plotting_context())
-    # print(sns.axes_style())
-
-
-def font_dict(
-    fontsize: int,
-    fontweight: str = "bold",  # "normal",
-    horizontalalignment: str = "center",  # left
-    verticalalignment: str = "baseline",
-) -> dict:
-    """ TODO """
-
-    # #TODO Enums
-    return dict(
-        fontsize=fontsize,
-        fontweight=fontweight,
-        horizontalalignment=horizontalalignment,
-        verticalalignment=verticalalignment,
     )
 
 
@@ -156,7 +135,6 @@ class Series:
         # edge=None,
         # face=None,
         alpha=0.75,
-        width=2,
         marker="",
         size=10,
         min_size=None,
@@ -170,8 +148,6 @@ class Series:
         self.plot_type = plot_type
         self.color = color
         self.alpha = alpha
-
-        self.width = width
 
         self.marker = marker
         self.size = size
@@ -203,7 +179,6 @@ class Series:
             label=self.label,
             # color=self.color,
             alpha=self.alpha,
-            lw=self.width,
             marker=self.marker if show_markers else "",
             markersize=self.size,
         )
@@ -247,60 +222,30 @@ class Plot:
         xlim=None,
         ylim=None,
         title=None,
-        title_fontsize=14,
         xlabel=None,
         ylabel=None,
-        label_fontsize=12,
-        legend_loc="best",
-        legend_frameon=False,
-        legend_face_color=config.legend_face_color,
-        legend_edge_color=config.legend_edge_color,
-        legend_text_color=config.legend_text_color,
-        grid_on=config.grid_major_on,
-        grid_alpha=config.grid_major_alpha,
-        grid_color=config.grid_major_color,
-        grid_width=config.grid_major_wdith,
-        minor_on=config.grid_minor_on,
-        minor_alpha=config.grid_minor_alpha,
-        minor_color=config.grid_minor_color,
-        minor_width=config.grid_minor_wdith,
         show_values=False,
         show_markers=False,
     ):
-        self.figure = figure or plt.figure(figsize=config.figure_size)
+        self.figure = figure or plt.figure()
         self.ax = ax or self.figure.add_subplot(1, 1, 1)
+
         self.series = ()
         self.show_series = []
 
         self.show_values = show_values
         self.show_markers = show_markers
+
         self.xlim = xlim
         self.ylim = ylim
+        self.xlog = False
+        self.ylog = False
 
         self.title = title
         self.xlabel = xlabel
         self.ylabel = ylabel
 
-        self.legend_loc = legend_loc
-        self.legend_frameon = legend_frameon
-        self.legend_face_color = legend_face_color
-        self.legend_edge_color = legend_edge_color
-        self.legend_text_color = legend_text_color
-        self.grid_on = grid_on
-        self.grid_alpha = grid_alpha
-        self.grid_color = grid_color
-        self.grid_width = grid_width
-        self.minor_on = minor_on
-        self.minor_alpha = minor_alpha
-        self.minor_color = minor_color
-        self.minor_width = minor_width
-        self.xlog = False
-        self.ylog = False
-
-        self.title_font = font_dict(title_fontsize)
-        self.label_font = font_dict(label_fontsize)
-
-        # plt.tight_layout()
+        self.grid_on = config.grid_on
 
     def add(self, series) -> None:
         """ TODO """
@@ -312,8 +257,7 @@ class Plot:
         """ TODO """
 
         ax = self.ax
-        plt.sca(ax)  # set current axis:w
-        plt.cla()  # clear current axis
+        ax.clear()
 
         for index, s in enumerate(self.series):
             s.plot(ax, self.show_markers, self.show_values and self.show_series[index])
@@ -325,18 +269,18 @@ class Plot:
             ax.set_ylim(self.ylim)
 
         if self.title:
-            ax.set_title(self.title)  # , fontdict=self.title_font, y=1.01)
+            ax.set_title(self.title)
         if self.xlabel:
-            ax.set_xlabel(self.xlabel)  # , fontdict=self.label_font)
+            ax.set_xlabel(self.xlabel)
         if self.ylabel:
-            ax.set_ylabel(self.ylabel)  # , fontdict=self.label_font)
+            ax.set_ylabel(self.ylabel)
 
         if self.xlog:
             ax.set_xscale("log")
         if self.ylog:
             ax.set_yscale("log")
 
-        if len(self.series) > 1 and self.legend_loc:
+        if len(self.series) > 1:
             self.legend()
 
         self.gridlines()
@@ -344,49 +288,33 @@ class Plot:
     def legend(self) -> None:
         """ TODO """
 
-        legend = self.ax.legend(
-            loc=self.legend_loc,
-            fontsize=8,
-            frameon=self.legend_frameon,
-            facecolor=self.legend_face_color,
-            edgecolor=self.legend_edge_color,
-        )
+        legend = self.ax.legend()
         for text in legend.get_texts():
-            text.set_color(self.legend_text_color)
+            text.set_color(config.legend_text_color)
 
     def gridlines(self) -> None:
         """ TODO """
 
         if self.grid_on:
-            self.ax.grid(
-                which="major",
-                linewidth=self.grid_width,
-                color=self.grid_color,
-                alpha=self.grid_alpha,
-            )
-        else:
-            self.ax.grid(False)
-
-        if self.minor_on:
             self.ax.minorticks_on()
             self.ax.grid(
                 which="minor",
-                linewidth=self.minor_width,
-                color=self.minor_color,
-                alpha=self.minor_alpha,
+                color=config.grid_minor_color,
+                alpha=config.grid_minor_alpha,
             )
         else:
+            self.ax.grid(False)
             self.ax.minorticks_off()
 
     def post(self) -> None:
         """ TODO """
 
-        figure = plt.gcf()
+        figure = self.figure
+        canvas = figure.canvas
 
-        figure.canvas.mpl_disconnect(
-            figure.canvas.manager.key_press_handler_id
-        )  # Remove default handlers
-        figure.canvas.mpl_connect("key_press_event", self._on_key_press)
+        # Remove default handlers
+        canvas.mpl_disconnect(canvas.manager.key_press_handler_id)
+        canvas.mpl_connect("key_press_event", self._on_key_press)
         ui = PyPlotUI(figure, self.ax)
         plt.show()
 
@@ -397,7 +325,6 @@ class Plot:
 
         if event.key == "g":  # Toggle Grid
             self.grid_on = not self.grid_on
-            self.minor_on = not self.minor_on
             self.gridlines()
             self.figure.canvas.draw()
             return
@@ -442,7 +369,7 @@ class Plot:
         if event.key == "enter":  # Save to image
             title = self.title or "plot"
             filename = unique_filename(f"{title}.png")
-            plt.savefig(filename, dpi=config.image_dpi)
+            self.figure.savefig(filename)
             print(f"Saved {filename}")
             return
 
@@ -465,7 +392,7 @@ def next_item(ring: List, item: Any) -> Any:
 
 def unique_filename(filename: Union[str, Path]) -> Path:
     path = Path(filename)
-    if path.exists:
+    if path.exists():
         stem = path.stem
         suffix = path.suffix
         for n in count(2):
@@ -564,10 +491,10 @@ def load(df, column_list: List[str], plot_type: PlotType = PlotType.line,) -> Pl
             df,
             x_column,
             y_column,
-            color=next(cycle).get("color"),
-            marker="o",
             plot_type=plot_type,
+            marker="o",
             share_x=share_x,
+            color=next(cycle).get("color"),
         )
         for x_column, y_column in column_pairs
     ]

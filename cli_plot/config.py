@@ -42,8 +42,8 @@ class Config:
         # check to make sure keys are the same
         data_keys = set(data.keys())
         default_keys = set(self._data.keys())
-        assert (
-            data_keys.issubset(default_keys)
+        assert data_keys.issubset(
+            default_keys
         ), f"{self._path} contains invalid keys: {(data_keys - default_keys)}"
 
         self.__dict__["_data"] = data

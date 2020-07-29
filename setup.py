@@ -28,8 +28,8 @@ dependency_links = [
 setup(
     name="cli_plot",
     description="A commandline app for plotting datafiles",
-    version="1.0.post7",
-    # version="1.0.post1",
+    version="1.0",
+    # version="1.0.post7",
     packages=["cli_plot"],
     install_requires=install_requires,
     python_requires=">=3.6",
