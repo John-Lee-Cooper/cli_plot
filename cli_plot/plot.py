@@ -4,7 +4,7 @@
 TODO
 """
 
-from typing import List, Union, Any
+from typing import List, Union, Any, Optional
 from pathlib import Path
 from enum import Enum
 from collections import namedtuple
@@ -15,8 +15,9 @@ import numpy as np
 import pandas as pd
 import matplotlib as mpl
 import matplotlib.pyplot as plt
-import seaborn as sns
 from matplotlib.collections import PathCollection
+from matplotlib.backend_bases import KeyEvent
+import seaborn as sns
 
 from .pyplotui import PyPlotUI
 from .config import Config
@@ -126,19 +127,19 @@ class Series:
 
     def __init__(
         self,
-        df,
-        x_column,
-        y_column,
-        color,
-        share_x=True,
-        plot_type=PlotType.line,
+        df: pd.DataFrame,
+        x_column: str,
+        y_column: str,
+        color: str,
+        share_x: bool = True,
+        plot_type: PlotType = PlotType.line,
         # edge=None,
         # face=None,
-        alpha=0.75,
-        marker="",
-        size=10,
-        min_size=None,
-        max_size=None,
+        alpha: float = 0.75,
+        marker: str = "",
+        size: int = 10,
+        min_size: Optional[int] = None,
+        max_size: Optional[int] = None,
     ):
         self.x = df[x_column].values
         self.y = df[y_column].values
@@ -159,7 +160,9 @@ class Series:
 
         self.plotted = None
 
-    def plot(self, ax, show_markers=False, show_values=False) -> None:
+    def plot(
+        self, ax: plt.Axes, show_markers: bool = False, show_values: bool = False
+    ) -> None:
         """ TODO """
 
         if self.plot_type == PlotType.line:
@@ -170,7 +173,7 @@ class Series:
         if show_values:
             self.display_values(ax)
 
-    def line(self, ax, show_markers) -> List:
+    def line(self, ax: plt.Axes, show_markers: bool) -> List:
         """ TODO """
 
         return ax.plot(
@@ -183,7 +186,7 @@ class Series:
             markersize=self.size,
         )
 
-    def scatter(self, ax) -> PathCollection:
+    def scatter(self, ax: plt.Axes) -> PathCollection:
         """ TODO """
 
         return ax.scatter(
@@ -197,7 +200,7 @@ class Series:
             s=np.ones_like(self.x) * (self.size * 10),  # ???
         )
 
-    def display_values(self, ax) -> None:
+    def display_values(self, ax: plt.Axes) -> None:
         """ TODO """
 
         xytext = (self.size, -self.size // 2)
@@ -217,15 +220,15 @@ class Plot:
 
     def __init__(
         self,
-        figure=None,
-        ax=None,
-        xlim=None,
-        ylim=None,
-        title=None,
-        xlabel=None,
-        ylabel=None,
-        show_values=False,
-        show_markers=False,
+        figure: plt.Figure = None,
+        ax: plt.Axes = None,
+        xlim: Optional[Tuple[float, float]] = None,
+        ylim: Optional[Tuple[float, float]] = None,
+        title: Optional[str] = None,
+        xlabel: Optional[str] = None,
+        ylabel: Optional[str] = None,
+        show_values: bool = False,
+        show_markers: bool = False,
     ):
         self.figure = figure or plt.figure()
         self.ax = ax or self.figure.add_subplot(1, 1, 1)
@@ -247,7 +250,11 @@ class Plot:
 
         self.grid_on = config.grid_on
 
-    def add(self, series) -> None:
+        self.ax.grid(
+            which="minor", color=config.grid_minor_color, alpha=config.grid_minor_alpha,
+        )
+
+    def add(self, series: List[Series]) -> None:
         """ TODO """
 
         self.series = series
@@ -264,9 +271,9 @@ class Plot:
             s.plotted.set_visible(self.show_series[index])
 
         if self.xlim:
-            ax.set_xlim(self.xlim)
+            ax.set_xlim(xmin=self.xlim[0], xmax=self.xlim[1])
         if self.ylim:
-            ax.set_ylim(self.ylim)
+            ax.set_ylim(ymin=self.ylim[0], ymax=self.ylim[1])
 
         if self.title:
             ax.set_title(self.title)
@@ -296,12 +303,8 @@ class Plot:
         """ TODO """
 
         if self.grid_on:
+            self.ax.grid(True)
             self.ax.minorticks_on()
-            self.ax.grid(
-                which="minor",
-                color=config.grid_minor_color,
-                alpha=config.grid_minor_alpha,
-            )
         else:
             self.ax.grid(False)
             self.ax.minorticks_off()
@@ -318,7 +321,7 @@ class Plot:
         ui = PyPlotUI(figure, self.ax)
         plt.show()
 
-    def _on_key_press(self, event) -> None:
+    def _on_key_press(self, event: KeyEvent) -> None:
         """ TODO """
 
         # print(f"|{event.key}|")
@@ -436,7 +439,9 @@ def demo_df() -> pd.DataFrame:
     return df
 
 
-def load(df, column_list: List[str], plot_type: PlotType = PlotType.line,) -> PlotInfo:
+def load(
+    df: pd.DataFrame, column_list: List[str], plot_type: PlotType = PlotType.line,
+) -> PlotInfo:
     """ TODO """
 
     # assert column_list, "invalid column_list (len==0)"
@@ -509,7 +514,7 @@ def load(df, column_list: List[str], plot_type: PlotType = PlotType.line,) -> Pl
 def version_option() -> bool:
     """ TODO """
 
-    def version_callback(_ctxt, value: bool):
+    def version_callback(_ctxt: typer.Context, value: bool):
         if value:
             typer.echo(f"plot version: {__version__}")
             raise typer.Exit()

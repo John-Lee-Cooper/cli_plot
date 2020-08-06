@@ -7,9 +7,7 @@ from typing import Optional, Tuple, Callable
 import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.figure import Figure
-from matplotlib.backend_bases import Event  # MouseEvent
-
-# from matplotlib.axes._subplots import AxesSubplot
+from matplotlib.backend_bases import MouseEvent
 
 """
 Event name 	Class and description
@@ -47,7 +45,7 @@ class PyPlotUI:
         self.canvas.mpl_connect("button_release_event", self._on_release)
         self.canvas.mpl_connect("scroll_event", self._on_scroll_event)
 
-    def _on_press(self, event: Event) -> None:
+    def _on_press(self, event: MouseEvent) -> None:
         """ TODO """
 
         if event.inaxes is not self.ax:
@@ -57,13 +55,13 @@ class PyPlotUI:
             "motion_notify_event", self._on_motion
         )
 
-    def _on_release(self, event: Event) -> None:
+    def _on_release(self, event: MouseEvent) -> None:
         """ TODO """
 
         self.last_point = None
         self.canvas.mpl_disconnect(self.motion_handler)
 
-    def _on_motion(self, event: Event) -> None:
+    def _on_motion(self, event: MouseEvent) -> None:
         """ TODO """
 
         if event.inaxes is not self.ax or self.last_point is None:
@@ -78,12 +76,12 @@ class PyPlotUI:
 
         self._pan(dx, dy)
 
-    def _on_scroll_event(self, event: Event):
+    def _on_scroll_event(self, event: MouseEvent):
         """ TODO """
 
         self._zoom(event.xdata, event.ydata, zoom_in=(event.button == "up"))
 
-    def _pan(self, dx, dy) -> None:
+    def _pan(self, dx: int, dy: int) -> None:
         """ TODO """
 
         xmin, xmax = self.ax.get_xlim()
@@ -95,7 +93,7 @@ class PyPlotUI:
 
         self.canvas.draw()
 
-    def _zoom(self, x, y, zoom_in=True, scale=0.8) -> None:
+    def _zoom(self, x: int, y: int, zoom_in: bool = True, scale: float = 0.8) -> None:
         """ TODO """
 
         # Get current limits
@@ -129,7 +127,7 @@ class PyPlotUI:
         self.canvas.draw()
 
 
-def demo():
+def demo() -> None:
     """ TODO """
 
     x, y, size, color = np.random.rand(4, 200)

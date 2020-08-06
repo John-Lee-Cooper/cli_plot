@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-from typing import Any
+from typing import Any, Optional
 import sys
 import json
 from pathlib import Path
@@ -11,7 +11,14 @@ TODO: Allow public and private files
 
 
 class Config:
-    def __init__(self, app_name=None, _config_path="config.json", **kwargs):
+    """ TODO """
+
+    def __init__(
+        self,
+        app_name: Optional[str] = None,
+        _config_path: str = "config.json",
+        **kwargs,
+    ):
 
         app_name = app_name or Path(sys.argv[0]).stem
 
@@ -32,10 +39,11 @@ class Config:
         self._data[name] = value
         self._write()
 
-    def __delattr__(self, name) -> None:
+    def __delattr__(self, name: str) -> None:
         assert False, f"Cannot delete from config"
 
-    def _read(self):
+    def _read(self) -> None:
+        """ TODO """
         with open(self._path) as json_file:
             data = json.load(json_file)
 
@@ -49,6 +57,7 @@ class Config:
         self.__dict__["_data"] = data
 
     def _write(self) -> None:
+        """ TODO """
         self._path.parent.mkdir(parents=True, exist_ok=True)
         with open(self._path, "w") as json_file:
             json.dump(self._data, json_file, sort_keys=True, indent=4)
