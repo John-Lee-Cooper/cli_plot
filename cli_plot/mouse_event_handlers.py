@@ -1,14 +1,5 @@
 #!/usr/bin/env python
 
-""" TODO """
-
-from typing import Optional, Tuple, Callable
-
-import numpy as np
-import matplotlib.pyplot as plt
-from matplotlib.figure import Figure
-from matplotlib.backend_bases import MouseEvent
-
 """
 Event name 	Class and description
 'button_press_event' 	MouseEvent    - mouse button is pressed
@@ -24,29 +15,45 @@ Event name 	Class and description
 'pick_event' 	        PickEvent     - an object in the canvas is selected
 'resize_event' 	        ResizeEvent   - figure canvas is resized
 'draw_event' 	        DrawEvent     - canvas draw (but before screen update)
-        
+
 event:
-    button, canvas, dblclick, guiEvent, inaxes, key, lastevent, name, step, x, xdata, y, ydata
+    button, canvas, dblclick, guiEvent, inaxes, key, lastevent,
+    name, step, x, xdata, y, ydata
 """
 
 
-class PyPlotUI:
-    """ TODO """
+from typing import Optional, Tuple, Callable
+
+import numpy as np
+import matplotlib.pyplot as plt
+from matplotlib.backend_bases import MouseEvent
+
+
+class MouseEventHandlers:
+    """ Collection of mouse event handlers for matplotlib """
 
     def __init__(
-        self, figure: Figure, ax,
+        self, ax: plt.Axes,
     ):
-        self.canvas = figure.canvas
+        """
+        :param ax: xxx
+        """
+        canvas = ax.get_figure().canvas
+        canvas.mpl_connect("button_press_event", self._on_press)
+        canvas.mpl_connect("button_release_event", self._on_release)
+        canvas.mpl_connect("scroll_event", self._on_scroll_event)
+
         self.ax = ax
+        self.canvas = canvas
         self.last_point: Optional[Tuple[float, float]] = None
         self.motion_handler: Optional[Callable] = None
 
-        self.canvas.mpl_connect("button_press_event", self._on_press)
-        self.canvas.mpl_connect("button_release_event", self._on_release)
-        self.canvas.mpl_connect("scroll_event", self._on_scroll_event)
-
     def _on_press(self, event: MouseEvent) -> None:
-        """ TODO """
+        """Handle mouse down event,
+        storing the mouse down point and starting the motion handler
+
+        :param event: xxx
+        """
 
         if event.inaxes is not self.ax:
             return
@@ -55,14 +62,20 @@ class PyPlotUI:
             "motion_notify_event", self._on_motion
         )
 
-    def _on_release(self, event: MouseEvent) -> None:
-        """ TODO """
+    def _on_release(self, _event: MouseEvent) -> None:
+        """Handle mouse up event, cancelling the motion handler
+
+        :param _event: xxx
+        """
 
         self.last_point = None
         self.canvas.mpl_disconnect(self.motion_handler)
 
     def _on_motion(self, event: MouseEvent) -> None:
-        """ TODO """
+        """Handle mouse motion: pan the plot to move with the mouse
+
+        :param event: xxx
+        """
 
         if event.inaxes is not self.ax or self.last_point is None:
             return
@@ -77,12 +90,19 @@ class PyPlotUI:
         self._pan(dx, dy)
 
     def _on_scroll_event(self, event: MouseEvent):
-        """ TODO """
+        """Handle scroll event by zooming in or out at the mouse location
+
+        :param event: xxx
+        """
 
         self._zoom(event.xdata, event.ydata, zoom_in=(event.button == "up"))
 
     def _pan(self, dx: int, dy: int) -> None:
-        """ TODO """
+        """Pan the plot dx,dy pixels
+
+        :param dx: xxx
+        :param dy: xxx
+        """
 
         xmin, xmax = self.ax.get_xlim()
         ymin, ymax = self.ax.get_ylim()
@@ -94,7 +114,13 @@ class PyPlotUI:
         self.canvas.draw()
 
     def _zoom(self, x: int, y: int, zoom_in: bool = True, scale: float = 0.8) -> None:
-        """ TODO """
+        """ Zoom in or out at x/y by scale.
+
+        :param x: xxx
+        :param y: xxx
+        :param zoom_in: xxx
+        :param scale: xxx
+        """
 
         # Get current limits
         x0, x1 = self.ax.get_xlim()
@@ -128,16 +154,16 @@ class PyPlotUI:
 
 
 def demo() -> None:
-    """ TODO """
+    """ Simple demonstration of pan/zoom mouse events """
 
     x, y, size, color = np.random.rand(4, 200)
     size *= 200
 
-    figure, ax = plt.subplots()
-    ui = PyPlotUI(figure, ax)  # Keep ui to prevent it from being garbage collected
+    _, ax = plt.subplots()
+    _handlers = MouseEventHandlers(ax)  # Keep ui to prevent it from being garbage collected
 
     ax.scatter(x, y, size, color, alpha=0.75)
-    ax.set(xlim=(0, 1), ylim=(0, 1), autoscale_on=False, title="Click to zoom")
+    ax.set(xlim=(0, 1), ylim=(0, 1), autoscale_on=False, title="Drag to pan, Wheel to zoom")
     plt.show()
 
 

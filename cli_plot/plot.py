@@ -4,7 +4,8 @@
 TODO
 """
 
-from typing import List, Union, Any, Optional
+import sys
+from typing import List, Tuple, Union, Optional, Any
 from pathlib import Path
 from enum import Enum
 from collections import namedtuple
@@ -13,28 +14,27 @@ from itertools import count
 import typer
 import numpy as np
 import pandas as pd
-import matplotlib as mpl
 import matplotlib.pyplot as plt
 from matplotlib.collections import PathCollection
 from matplotlib.backend_bases import KeyEvent
 import seaborn as sns
 
-from .pyplotui import PyPlotUI
 from .config import Config
-from .functions import sine_wave, cosine_wave, normal, damped_sine_wave, dataframe
+from .mouse_event_handlers import MouseEventHandlers
+from .functions import demo_df
 
 __version__ = "0.0.1"
 
 
 class PlotType(str, Enum):
-    """ TODO """
+    """The type of plot to plot. """
 
     line = "line"
     scatter = "scatter"
 
 
 class Context(str, Enum):
-    """ Seaborn context set the size of the plot  """
+    """Seaborn context set the size of the plot  """
 
     # Smallest to largest
     paper = "paper"
@@ -61,7 +61,7 @@ config = Config(
     ),
     legend_face_color="#001000",
     legend_edge_color="#00FF00",
-    legend_text_color="#00FF00",  # TODO: Cannot be set by RC - do by plot
+    legend_text_color="#00FF00",  # Cannot be set by RC
     grid_on=True,
     grid_major_color="#00FF00",
     grid_major_alpha=0.2,
@@ -73,7 +73,10 @@ config = Config(
 
 
 def setup(context: Context = Context.notebook) -> None:
-    """ TODO """
+    """Setup matplotlib/seaborn using context and config
+
+    :param context: Controls the size of the plot
+    """
 
     rc = {
         "axes.axisbelow": False,
@@ -123,7 +126,7 @@ def setup(context: Context = Context.notebook) -> None:
 
 
 class Series:
-    """ TODO """
+    """All information necessary to show a set of data. """
 
     def __init__(
         self,
@@ -141,6 +144,21 @@ class Series:
         min_size: Optional[int] = None,
         max_size: Optional[int] = None,
     ):
+        """
+        :param df: xxx
+        :param x_column: xxx
+        :param y_column: xxx
+        :param color: xxx
+        :param share_x: xxx
+        :param plot_type: xxx
+        :param # edge=None,
+        :param # face=None,
+        :param alpha: xxx
+        :param marker: xxx
+        :param size: xxx
+        :param min_size: xxx
+        :param max_size: xxx
+        """
         self.x = df[x_column].values
         self.y = df[y_column].values
         self.label = y_column if share_x else f"{x_column}, {y_column}"
@@ -160,10 +178,16 @@ class Series:
 
         self.plotted = None
 
-    def plot(
+    def draw(
         self, ax: plt.Axes, show_markers: bool = False, show_values: bool = False
     ) -> None:
-        """ TODO """
+        """Draw the series using the appropriate plot_type,
+        showing markers and values if requested
+
+        :param ax: plot Axes
+        :param show_markers: Whether to show markers
+        :param show_values: Whether to show values next to point
+        """
 
         if self.plot_type == PlotType.line:
             self.plotted = self.line(ax, show_markers)[0]
@@ -174,7 +198,12 @@ class Series:
             self.display_values(ax)
 
     def line(self, ax: plt.Axes, show_markers: bool) -> List:
-        """ TODO """
+        """Draw an x/y line plot
+
+        :param ax: Plot Axes.
+        :param show_markers: Whether to show markers
+        :returns: the result of ax.plot
+        """
 
         return ax.plot(
             self.x,
@@ -187,7 +216,11 @@ class Series:
         )
 
     def scatter(self, ax: plt.Axes) -> PathCollection:
-        """ TODO """
+        """Draw an x/y scatter plot
+
+        :param ax: Plot Axes.
+        :returns: the result of ax.scatter
+        """
 
         return ax.scatter(
             self.x,
@@ -201,7 +234,10 @@ class Series:
         )
 
     def display_values(self, ax: plt.Axes) -> None:
-        """ TODO """
+        """Draw series values next to points
+
+        :param ax: Plot Axes.
+        """
 
         xytext = (self.size, -self.size // 2)
         for xy in zip(self.x, self.y):
@@ -216,7 +252,7 @@ class Series:
 
 
 class Plot:
-    """ TODO """
+    """All information necessary to plot the data. """
 
     def __init__(
         self,
@@ -230,6 +266,17 @@ class Plot:
         show_values: bool = False,
         show_markers: bool = False,
     ):
+        """
+        :param figure: xxx
+        :param ax: xxx
+        :param xlim: xxx
+        :param ylim: xxx
+        :param title: xxx
+        :param xlabel: xxx
+        :param ylabel: xxx
+        :param show_values: xxx
+        :param show_markers: xxx
+        """
         self.figure = figure or plt.figure()
         self.ax = ax or self.figure.add_subplot(1, 1, 1)
 
@@ -254,21 +301,28 @@ class Plot:
             which="minor", color=config.grid_minor_color, alpha=config.grid_minor_alpha,
         )
 
+        self.mouse_handlers = MouseEventHandlers(self.ax)
+        self.replace_key_handler()
+
     def add(self, series: List[Series]) -> None:
-        """ TODO """
+        """Add a series to the plot
+
+        :param series: List of series to add to the plot
+        """
 
         self.series = series
         self.show_series = [True for _ in self.series]
 
     def draw(self) -> None:
-        """ TODO """
+        """Draw the plot """
 
         ax = self.ax
         ax.clear()
 
         for index, s in enumerate(self.series):
-            s.plot(ax, self.show_markers, self.show_values and self.show_series[index])
-            s.plotted.set_visible(self.show_series[index])
+            visible = self.show_series[index]
+            s.draw(ax, self.show_markers, self.show_values and visible)
+            s.plotted.set_visible(visible)
 
         if self.xlim:
             ax.set_xlim(xmin=self.xlim[0], xmax=self.xlim[1])
@@ -293,14 +347,14 @@ class Plot:
         self.gridlines()
 
     def legend(self) -> None:
-        """ TODO """
+        """Draw the plot's legend """
 
         legend = self.ax.legend()
         for text in legend.get_texts():
             text.set_color(config.legend_text_color)
 
     def gridlines(self) -> None:
-        """ TODO """
+        """Draw the plot's gridlines """
 
         if self.grid_on:
             self.ax.grid(True)
@@ -309,30 +363,44 @@ class Plot:
             self.ax.grid(False)
             self.ax.minorticks_off()
 
-    def post(self) -> None:
-        """ TODO """
-
-        figure = self.figure
-        canvas = figure.canvas
+    def replace_key_handler(self) -> None:
+        """Replace standard key and mouse handler and then show figure """
 
         # Remove default handlers
+        canvas = self.figure.canvas
         canvas.mpl_disconnect(canvas.manager.key_press_handler_id)
         canvas.mpl_connect("key_press_event", self._on_key_press)
-        ui = PyPlotUI(figure, self.ax)
-        plt.show()
 
     def _on_key_press(self, event: KeyEvent) -> None:
-        """ TODO """
+        """Key handler
+
+        :param event: KeyEvent to handle
+        """
 
         # print(f"|{event.key}|")
 
-        if event.key == "g":  # Toggle Grid
+        if event.key == "escape":  # Quit
+            exit_cli()
+
+        elif event.key == "enter":  # Save to image
+            title = self.title or "plot"
+            filename = unique_filename(f"{title}.png")
+            self.figure.savefig(filename)
+            print(f"Saved {filename}")
+
+        elif event.key == "g":  # Toggle Grid
             self.grid_on = not self.grid_on
             self.gridlines()
             self.figure.canvas.draw()
-            return
 
-        if event.key == "t":  # Cycle Plot Type
+        elif event.key in "123456789":  # Toggle Series Display
+            n = ord(event.key) - ord("1")
+            self.show_series[n] = not self.show_series[n]
+            for index, s in enumerate(self.series):
+                s.plotted.set_visible(self.show_series[index])
+            self.figure.canvas.draw()
+
+        elif event.key == "t":  # Cycle Plot Type
             for s in self.series:
                 s.plot_type = next_item(list(PlotType), s.plot_type)
 
@@ -340,11 +408,9 @@ class Plot:
             ymin, ymax = self.ax.get_ylim()
             self.draw()
             self.ax.axis(xmin=xmin, xmax=xmax, ymin=ymin, ymax=ymax)
-
             self.figure.canvas.draw()
-            return
 
-        if event.key == "m":  # Toggle Series Markers
+        elif event.key == "m":  # Toggle Series Markers
             self.show_markers = not self.show_markers
             marker = "o" if self.show_markers else ""
             for s in self.series:
@@ -353,47 +419,34 @@ class Plot:
             self.figure.canvas.draw()
             return
 
-        """
-        if event.key == "v":  # Toggle Value Display
-            self.show_values = not self.show_values
-            self.draw()
-            self.figure.canvas.draw()
-            return
-        """
-
-        if event.key in "123456789":  # Toggle Series Display
-            n = ord(event.key) - ord("1")
-            self.show_series[n] = not self.show_series[n]
-            for index, s in enumerate(self.series):
-                s.plotted.set_visible(self.show_series[index])
-            self.figure.canvas.draw()
-            return
-
-        if event.key == "enter":  # Save to image
-            title = self.title or "plot"
-            filename = unique_filename(f"{title}.png")
-            self.figure.savefig(filename)
-            print(f"Saved {filename}")
-            return
-
-        if event.key == "escape":  # Quit
-            exit(0)
-
-        # plt.close()
-        return
+        #elif event.key == "v":  # Toggle Value Display
+        #    self.show_values = not self.show_values
+        #    self.draw()
+        #    self.figure.canvas.draw()
 
 
 def next_item(ring: List, item: Any) -> Any:
-    """
-    Returns the next item in ring buffer,
-    returning the first item if `item` is the last
+    """Find item in ring, and then
+    return the next item or the first if `item` is the last in ring.
     Assumes `item` in `ring`; otherwise will throw ValueError
+
+    :param ring: A list of items representing a ring buffer
+    :param item: Item in the ring buffer
+    :returns: the next item in ring buffer.
     """
     index = (ring.index(item) + 1) % len(ring)
     return ring[index]
 
 
 def unique_filename(filename: Union[str, Path]) -> Path:
+    """Given a filename, return a filename for a path that does not already exist.
+    If the given filename does not exist it will be returned,
+    otherwise a filename with
+    the same stem followed by an integer and then the same suffix is returned.
+
+    :param filename: Desired filename that the result is based on.
+    :returns: a unique filename
+    """
     path = Path(filename)
     if path.exists():
         stem = path.stem
@@ -405,17 +458,24 @@ def unique_filename(filename: Union[str, Path]) -> Path:
     return path
 
 
-def convert_to_label(columns: List[str], value: str) -> str:
-    """ TODO """
+def convert_to_label(df: pd.DataFrame, value: str) -> str:
+    """Return the appropriate label for dataframe, df.
+    Assumes value is either the column number (first=1)
+    or is already the appropriate label.
+
+    :param df: A pandas dataframe.
+    :param value: Either a label or index for a dataframe column
+    :returns: dataframe label
+    """
 
     try:
         index = int(value) - 1
     except ValueError:
         return value
 
+    columns = df.columns.tolist()
     if not 0 <= index < len(columns):
-        print(f"Invalid column: {value}")
-        raise typer.Exit()
+        exit_cli(f"Invalid column: {value}")
 
     return columns[index]
 
@@ -423,35 +483,24 @@ def convert_to_label(columns: List[str], value: str) -> str:
 PlotInfo = namedtuple("PlotInfo", "xlabel ylabel series")
 
 
-def demo_df() -> pd.DataFrame:
-    """ TODO """
-
-    t = np.linspace(start=-3, stop=3, num=200)
-    df = dataframe(
-        time=t,
-        sin=sine_wave(t, 1.0),
-        cos=cosine_wave(t, 1.0),
-        normal=normal(t),
-        damp=damped_sine_wave(t, amp=0.5, damp=0.5),
-    )
-
-    df.to_csv("demo.dat", index=False)
-    return df
-
-
 def load(
     df: pd.DataFrame, column_list: List[str], plot_type: PlotType = PlotType.line,
 ) -> PlotInfo:
-    """ TODO """
+    """Load dataframe into series using the columns specified by column list
+
+    :param df: The dataframe to load from
+    :param column_list: A list of labels of the columns to load
+    :param plot_type:  The type to assign each series
+    :returns: the xlabel, ylabel and series in a namedtuple
+    """
 
     # assert column_list, "invalid column_list (len==0)"
     # assert len(column_list) > 1, "invalid column_list (len<=1)"
     # assert type(column_list[0]) == int, "invalid column_list (type != int)"
 
-    columns = df.columns.tolist()
-
     share_x = True
     if not column_list:
+        columns = df.columns.tolist()
         x_column = columns[0]
         y_columns = columns[1:]
         column_pairs = [(x_column, y_column) for y_column in y_columns]
@@ -460,7 +509,7 @@ def load(
         column_list_items = [len(value.split(",")) for value in column_list]
         if all((item == 1 for item in column_list_items)):
             # X Y1 Y2 ... YN
-            column_list = [convert_to_label(columns, value) for value in column_list]
+            column_list = [convert_to_label(df, value) for value in column_list]
             x_column = column_list[0]
             y_columns = column_list[1:]
             column_pairs = [(x_column, y_column) for y_column in y_columns]
@@ -470,26 +519,22 @@ def load(
             share_x = False
             column_pairs = []
             for pair in column_list:
-                x_column, y_column = pair.split(",")
-                x_column = convert_to_label(columns, x_column)
-                y_column = convert_to_label(columns, y_column)
+                x_value, y_value = pair.split(",")
+                x_column = convert_to_label(df, x_value)
+                y_column = convert_to_label(df, y_value)
                 column_pairs.append((x_column, y_column))
 
         else:
-            print("ERROR")
-            raise typer.Exit()
+            exit_cli("ERROR")
 
-    # TODO: Verify all column indices are valid
-
-    cycle = plt.rcParams["axes.prop_cycle"]()
-
+    # Verify all column indices are valid
     for x_column, y_column in column_pairs:
         if x_column not in df:
-            print(f"Invalid column: {x_column}")
-            raise typer.Exit()
+            exit_cli(f"Invalid column: {x_column}")
         if y_column not in df:
-            print(f"Invalid column: {y_column}")
-            raise typer.Exit()
+            exit_cli(f"Invalid column: {y_column}")
+
+    cycle = plt.rcParams["axes.prop_cycle"]()
 
     series = [
         Series(
@@ -511,13 +556,24 @@ def load(
     )
 
 
+def exit_cli(comment: Optional[str] = None) -> None:
+    """Exit using typer, echoing comment if provided
+
+    :param comment: String to print before exiting
+    """
+    if comment:
+        typer.echo(comment)
+    sys.exit(0)
+
+
 def version_option() -> bool:
-    """ TODO """
+    """
+    :returns: the typer Option that handles --version
+    """
 
     def version_callback(_ctxt: typer.Context, value: bool):
         if value:
-            typer.echo(f"plot version: {__version__}")
-            raise typer.Exit()
+            exit_cli(f"plot version: {__version__}")
 
     return typer.Option(
         None,
@@ -548,7 +604,8 @@ def run(
     or
       X1,Y1 X2,Y2 ... Xn,Yn
 
-    The column value must be either the index of the column 1..N, or the name of the column.
+    The column value must either be the index of the column (1..N),
+    or the name of the column.
 
 
     User Interface
@@ -566,6 +623,17 @@ def run(
 \b
     Holding the left mouse button down and moving the mouse will pan the plot.
     Rolling the mouse wheel up and down will zoom the plot where the mouse is located.
+
+    :param data_file_path: xxx
+    :param columns: xxx
+    :param plot_type: xxx
+    :param title: xxx
+    :param xlabel: xxx
+    :param ylabel: xxx
+    :param context: xxx
+    :param head: Display head of data file.
+    :param demo: Generate demo.png and use it.
+    :param version: xxx
     """
 
     if data_file_path:
@@ -574,15 +642,13 @@ def run(
         df = pd.read_csv(data_file_path, header=header, engine="python", sep=delimiter,)
         title = title or data_file_path.stem.replace("_", " ")
     elif demo:
-        df = demo_df()
+        df = demo_df("demo.dat")
         title = title or "Demo"
     else:
-        print("Must specify data file path or use --demo")
-        raise typer.Exit()
+        exit_cli("Must specify data file path or use --demo")
 
     if head:
-        print(df.head(10))
-        exit(0)
+        exit_cli(df.head(10))
 
     setup(context)
 
@@ -594,11 +660,11 @@ def run(
     )
     plot1.add(plot_info.series)
     plot1.draw()
-    plot1.post()
+    plt.show()
 
 
 def main() -> None:
-    """ TODO """
+    """Call the app command run """
 
     app = typer.Typer(add_completion=False)
     app.command()(run)
