@@ -1,6 +1,8 @@
 TODO:
-  * Docstrings
+  * Document parameters (xxx)
   * Config everything
+  Legend text same color as line
+  Legend line have markers
   Replace print with echo
   Remove type head - no arguments calls pandas head and summary and then prompts
   Set x and y limits (xmin,xmax or xmin,xmax,xinc)
