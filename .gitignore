@@ -155,5 +155,6 @@ dmypy.json
 # ========
 # cli_plot
 demo.dat
+private
 
 .DS_Store

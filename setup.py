@@ -1,8 +1,8 @@
 #!/usr/bin/env python
 
-from setuptools import setup, find_packages
-from io import open
+import io
 from pathlib import Path
+from setuptools import setup, find_packages
 
 # The directory containing this file
 DIRECTORY = Path(__file__).parent
@@ -10,9 +10,8 @@ DIRECTORY = Path(__file__).parent
 # The text of the README file
 README = (DIRECTORY / "README.md").read_text()
 
-# Automatically capture required modules for install_requires in requirements.txt
-# as well as configure dependency links
-with open(DIRECTORY / "requirements.txt", encoding="utf-8") as f:
+# Automatically capture required modules in requirements.txt for install_requires
+with io.open(DIRECTORY / "requirements.txt", encoding="utf-8") as f:
     requirements = f.read().split("\n")
 
 install_requires = [
@@ -21,8 +20,11 @@ install_requires = [
     if not ("git+" in r or r.startswith("#") or r.startswith("-"))
 ]
 
+# Configure dependency links
 dependency_links = [
-    r.strip().replace("git+", "") for r in requirements if "git+" not in r
+    r.strip().replace("git+", "")
+    for r in requirements
+    if not ("git+" in r)
 ]
 
 setup(

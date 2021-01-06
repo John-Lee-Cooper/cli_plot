@@ -33,7 +33,8 @@ class MouseEventHandlers:
     """ Collection of mouse event handlers for matplotlib """
 
     def __init__(
-        self, ax: plt.Axes,
+        self,
+        ax: plt.Axes,
     ):
         """
         :param ax: xxx
@@ -108,13 +109,16 @@ class MouseEventHandlers:
         ymin, ymax = self.ax.get_ylim()
 
         self.ax.axis(
-            xmin=xmin - dx, xmax=xmax - dx, ymin=ymin - dy, ymax=ymax - dy,
+            xmin=xmin - dx,
+            xmax=xmax - dx,
+            ymin=ymin - dy,
+            ymax=ymax - dy,
         )
 
         self.canvas.draw()
 
     def _zoom(self, x: int, y: int, zoom_in: bool = True, scale: float = 0.8) -> None:
-        """ Zoom in or out at x/y by scale.
+        """Zoom in or out at x/y by scale.
 
         :param x: xxx
         :param y: xxx
@@ -160,10 +164,14 @@ def demo() -> None:
     size *= 200
 
     _, ax = plt.subplots()
-    _handlers = MouseEventHandlers(ax)  # Keep ui to prevent it from being garbage collected
+    _handlers = MouseEventHandlers(
+        ax
+    )  # Keep ui to prevent it from being garbage collected
 
     ax.scatter(x, y, size, color, alpha=0.75)
-    ax.set(xlim=(0, 1), ylim=(0, 1), autoscale_on=False, title="Drag to pan, Wheel to zoom")
+    ax.set(
+        xlim=(0, 1), ylim=(0, 1), autoscale_on=False, title="Drag to pan, Wheel to zoom"
+    )
     plt.show()
 
 

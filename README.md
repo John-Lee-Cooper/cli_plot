@@ -13,7 +13,7 @@ A commandline app for parsing and plotting text data files.
 ## Manual
 
 ```bash
-  $ git clone https://bitbucket.org/lee-cooper/plot
+  $ git clone https://github.com/John-Lee-Cooper/cli_plot
   $ cd cli_plot
   $ python setup.py install
 ```
@@ -46,9 +46,7 @@ $ cli_plot --demo
  escape | Exit
 
 Holding the left mouse button down and moving the mouse will pan the plot.
-Rolling the mouse wheel up and down will zoom the plot where the mouse is located.
-
-
+Rolling the mouse wheel up and down will zoom out and in where the mouse is.
 
 
 ## Display head of file

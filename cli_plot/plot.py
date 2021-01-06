@@ -298,7 +298,9 @@ class Plot:
         self.grid_on = config.grid_on
 
         self.ax.grid(
-            which="minor", color=config.grid_minor_color, alpha=config.grid_minor_alpha,
+            which="minor",
+            color=config.grid_minor_color,
+            alpha=config.grid_minor_alpha,
         )
 
         self.mouse_handlers = MouseEventHandlers(self.ax)
@@ -419,7 +421,7 @@ class Plot:
             self.figure.canvas.draw()
             return
 
-        #elif event.key == "v":  # Toggle Value Display
+        # elif event.key == "v":  # Toggle Value Display
         #    self.show_values = not self.show_values
         #    self.draw()
         #    self.figure.canvas.draw()
@@ -484,7 +486,9 @@ PlotInfo = namedtuple("PlotInfo", "xlabel ylabel series")
 
 
 def load(
-    df: pd.DataFrame, column_list: List[str], plot_type: PlotType = PlotType.line,
+    df: pd.DataFrame,
+    column_list: List[str],
+    plot_type: PlotType = PlotType.line,
 ) -> PlotInfo:
     """Load dataframe into series using the columns specified by column list
 
@@ -597,49 +601,43 @@ def run(
     version: bool = version_option(),
 ) -> None:
     """
-    Plot will read the DATA_FILE_PATH and plot the data specified by COLUMNS.
+        Plot will read the DATA_FILE_PATH and plot the data specified by COLUMNS.
 
-    COLUMNS must be of the form
-      X Y1 Y2 ... Yn
-    or
-      X1,Y1 X2,Y2 ... Xn,Yn
+        COLUMNS must be of the form
+          X Y1 Y2 ... Yn
+        or
+          X1,Y1 X2,Y2 ... Xn,Yn
 
-    The column value must either be the index of the column (1..N),
-    or the name of the column.
+        The column value must either be the index of the column (1..N),
+        or the name of the column.
 
 
-    User Interface
+        User Interface
 
-\b
-    Key    | Result
-    -------|------------------------
-    g      | Toggle Grid
-    t      | Cycle Plot Type
-    m      | Toggle Series Markers
-    1-9    | Toggle Series 1-9 Display
-    enter  | Save Plot to png Image
-    escape | Exit
+    \b
+        Key    | Result
+        -------|------------------------
+        g      | Toggle Grid
+        t      | Cycle Plot Type
+        m      | Toggle Series Markers
+        1-9    | Toggle Series 1-9 Display
+        enter  | Save Plot to png Image
+        escape | Exit
 
-\b
-    Holding the left mouse button down and moving the mouse will pan the plot.
-    Rolling the mouse wheel up and down will zoom the plot where the mouse is located.
-
-    :param data_file_path: xxx
-    :param columns: xxx
-    :param plot_type: xxx
-    :param title: xxx
-    :param xlabel: xxx
-    :param ylabel: xxx
-    :param context: xxx
-    :param head: Display head of data file.
-    :param demo: Generate demo.png and use it.
-    :param version: xxx
+    \b
+        Holding the left mouse button down and moving the mouse will pan the plot.
+        Rolling the mouse wheel up and down will zoom out and in where the mouse is.
     """
 
     if data_file_path:
         delimiter = None
         header = 0  # int = typer.Option(0, help="Number of rows in data_file header"),
-        df = pd.read_csv(data_file_path, header=header, engine="python", sep=delimiter,)
+        df = pd.read_csv(
+            data_file_path,
+            header=header,
+            engine="python",
+            sep=delimiter,
+        )
         title = title or data_file_path.stem.replace("_", " ")
     elif demo:
         df = demo_df("demo.dat")
