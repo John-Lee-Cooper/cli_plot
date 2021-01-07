@@ -45,7 +45,7 @@ $ cli_plot --demo
  enter  | Save Plot to png Image
  escape | Exit
 
-Holding the left mouse button down and moving the mouse will pan the plot.
+Holding the left mouse button down and moving the mouse will pan the plot.  
 Rolling the mouse wheel up and down will zoom out and in where the mouse is.
 
 
