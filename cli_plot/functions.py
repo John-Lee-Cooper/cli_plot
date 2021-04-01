@@ -2,10 +2,10 @@
 
 from typing import Optional
 
-from numpy import sin, cos, exp, pi
 import numpy as np
 import pandas as pd
 import scipy.stats as stats
+from numpy import cos, exp, pi, sin
 
 
 def normal(x: np.array, mu: float = 0, sigma: float = 1) -> np.array:

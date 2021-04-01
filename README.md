@@ -2,15 +2,15 @@
 
 A commandline app for parsing and plotting text data files.
 
-# Installation
+## Installation
 
-## Using Pip
+### Using Pip
 
 ```bash
   $ pip install cli-plot
 ```
 
-## Manual
+### Manual
 
 ```bash
   $ git clone https://github.com/John-Lee-Cooper/cli_plot
@@ -18,14 +18,14 @@ A commandline app for parsing and plotting text data files.
   $ python setup.py install
 ```
 
-# Usage
+## Usage
 
 ```bash
 $ cli_plot --version
 $ cli_plot --help
 ```
 
-## Generate demo
+### Generate demo
 
 Generate and display some sample data, written to demo.dat
 
@@ -34,7 +34,7 @@ $ cli_plot --demo
 ```
 ![cli-plot](https://github.com/John-Lee-Cooper/cli_plot/raw/master/image/plot1.png)
 
-## User Interface
+### User Interface
 
  Key    | Result
  :---:  | :---  
@@ -49,12 +49,12 @@ Holding the left mouse button down and moving the mouse will pan the plot.
 Rolling the mouse wheel up and down will zoom out and in where the mouse is.
 
 
-## Display head of file
+### Display head of file
 ```bash
 $ cli_plot demo.dat --type=head
 ```
 
-## Plot specific columns
+### Plot specific columns
 
 Plot sin and growth against time:
 
@@ -63,7 +63,7 @@ $ cli_plot demo.dat time sin damp
 ```
 ![cli-plot](https://github.com/John-Lee-Cooper/cli_plot/raw/master/image/plot2.png)
 
-## Plot pairs of columns
+### Plot pairs of columns
 
 Plot columns 2 against column 1 and column 4 against column 3:
 
@@ -72,7 +72,7 @@ $ cli_plot demo.dat 2,3 1,4
 ```
 ![cli-plot](https://github.com/John-Lee-Cooper/cli_plot/raw/master/image/plot3.png)
 
-## Specify plot type
+### Specify plot type
 
 Plot data as a scatter plot:
 
@@ -80,3 +80,11 @@ Plot data as a scatter plot:
 $ cli_plot demo.dat --type=scatter
 ```
 ![cli-plot](https://github.com/John-Lee-Cooper/cli_plot/raw/master/image/plot4.png)
+
+
+## Todo
+
+## Written by
+
+John Lee Cooper  
+john.lee.cooper@gatech.edu

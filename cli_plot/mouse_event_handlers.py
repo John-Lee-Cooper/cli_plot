@@ -22,10 +22,10 @@ event:
 """
 
 
-from typing import Optional, Tuple, Callable
+from typing import Callable, Optional, Tuple
 
-import numpy as np
 import matplotlib.pyplot as plt
+import numpy as np
 from matplotlib.backend_bases import MouseEvent
 
 

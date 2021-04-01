@@ -1,5 +1,3 @@
-#!/usr/bin/env python
-
 import io
 from pathlib import Path
 from setuptools import setup, find_packages
@@ -22,10 +20,9 @@ install_requires = [
 
 # Configure dependency links
 dependency_links = [
-    r.strip().replace("git+", "")
-    for r in requirements
-    if not ("git+" in r)
+    r.strip().replace("git+", "") for r in requirements if "git+" not in r
 ]
+
 
 setup(
     name="cli_plot",

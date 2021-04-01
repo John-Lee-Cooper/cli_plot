@@ -4,10 +4,10 @@
 TODO: Allow public and private files
 """
 
-from typing import Any, Optional
-import sys
 import json
+import sys
 from pathlib import Path
+from typing import Any, Optional
 
 
 class Config:

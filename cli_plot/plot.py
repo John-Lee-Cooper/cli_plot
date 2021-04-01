@@ -5,23 +5,23 @@ TODO
 """
 
 import sys
-from typing import List, Tuple, Union, Optional, Any
-from pathlib import Path
-from enum import Enum
 from collections import namedtuple
+from enum import Enum
 from itertools import count
+from pathlib import Path
+from typing import Any, List, Optional, Tuple, Union
 
-import typer
+import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
-import matplotlib.pyplot as plt
-from matplotlib.collections import PathCollection
-from matplotlib.backend_bases import KeyEvent
 import seaborn as sns
+import typer
+from matplotlib.backend_bases import KeyEvent
+from matplotlib.collections import PathCollection
 
 from .config import Config
-from .mouse_event_handlers import MouseEventHandlers
 from .functions import demo_df
+from .mouse_event_handlers import MouseEventHandlers
 
 __version__ = "0.0.1"
 
