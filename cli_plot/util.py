@@ -8,7 +8,7 @@ import sys
 from collections import namedtuple
 from itertools import count
 from pathlib import Path
-from typing import Any, List, Optional, Tuple, Union
+from typing import Any, List, Optional, Union
 
 import typer
 

@@ -5,9 +5,10 @@ TODO
 """
 
 from enum import Enum
-from typing import Any, List, Optional, Tuple, Union
+from typing import List, Optional, Tuple
 
 import matplotlib.pyplot as plt
+
 # import numpy as np
 import pandas as pd
 import seaborn as sns
@@ -18,7 +19,6 @@ from .mouse_event_handlers import MouseEventHandlers
 from .util import exit_cli, unique_filename
 
 # from matplotlib.collections import PathCollection
-
 
 
 config = Config(
@@ -51,7 +51,7 @@ config = Config(
 
 
 class Context(str, Enum):
-    """Seaborn context set the size of the plot  """
+    """Seaborn context set the size of the plot"""
 
     # Smallest to largest
     paper = "paper"
@@ -114,7 +114,7 @@ def setup(context: Context = Context.notebook) -> None:
 
 
 class Series:
-    """All information necessary to show a set of data. """
+    """All information necessary to show a set of data."""
 
     def __init__(
         self,
@@ -154,14 +154,11 @@ class Series:
 
         self.plotted = None
 
-    def draw(
-        self, ax: plt.Axes, show_values: bool = False
-    ) -> None:
+    def draw(self, ax: plt.Axes, show_values: bool = False) -> None:
         """Draw the series using the appropriate plot_type,
         showing markers and values if requested
 
         :param ax: plot Axes
-        :param show_markers: Whether to show markers
         :param show_values: Whether to show values next to point
         """
 
@@ -188,24 +185,6 @@ class Series:
             linewidth=self.width,
         )
 
-    '''
-    def scatter(self, ax: plt.Axes) -> PathCollection:
-        """Draw an x/y scatter plot
-
-        :param ax: Plot Axes.
-        :returns: the result of ax.scatter
-        """
-
-        return ax.scatter(
-            self.x,
-            self.y,
-            label=self.label,
-            alpha=self.alpha,
-            marker=self.marker,
-            s=np.ones_like(self.x) * (self.size * 10),  # ???
-        )
-    '''
-
     def display_values(self, ax: plt.Axes) -> None:
         """Draw series values next to points
 
@@ -225,7 +204,7 @@ class Series:
 
 
 class Plot:
-    """All information necessary to plot the data. """
+    """All information necessary to plot the data."""
 
     def __init__(
         self,
@@ -292,7 +271,7 @@ class Plot:
         self.show_series = [True for _ in self.series]
 
     def draw(self) -> None:
-        """Draw the plot """
+        """Draw the plot"""
 
         ax = self.ax
         ax.clear()
@@ -325,14 +304,14 @@ class Plot:
         self.gridlines()
 
     def legend(self) -> None:
-        """Draw the plot's legend """
+        """Draw the plot's legend"""
 
         legend = self.ax.legend()
         for text in legend.get_texts():
             text.set_color(config.legend_text_color)
 
     def gridlines(self) -> None:
-        """Draw the plot's gridlines """
+        """Draw the plot's gridlines"""
 
         if self.grid_on:
             self.ax.grid(True)
@@ -342,13 +321,13 @@ class Plot:
             self.ax.minorticks_off()
 
     def replace_key_handler(self) -> None:
-        """Replace standard key and mouse handler and then show figure """
+        """Replace standard key and mouse handler and then show figure"""
 
         # Remove default handlers
         canvas = self.figure.canvas
         canvas.mpl_disconnect(canvas.manager.key_press_handler_id)
         canvas.mpl_connect("key_release_event", self._on_key_press)
-        #canvas.mpl_connect("key_press_event", self._on_key_press)
+        # canvas.mpl_connect("key_press_event", self._on_key_press)
 
     def _on_key_press(self, event: KeyEvent) -> None:
         """Key handler
@@ -398,3 +377,20 @@ class Plot:
 
         else:
             print(f"|{event.key}|")
+
+
+    # def scatter(self, ax: plt.Axes) -> PathCollection:
+    #     """Draw an x/y scatter plot
+    #
+    #     :param ax: Plot Axes.
+    #     :returns: the result of ax.scatter
+    #     """
+    #
+    #     return ax.scatter(
+    #         self.x,
+    #         self.y,
+    #         label=self.label,
+    #         alpha=self.alpha,
+    #         marker=self.marker,
+    #         s=np.ones_like(self.x) * (self.size * 10),  # ???
+    #     )

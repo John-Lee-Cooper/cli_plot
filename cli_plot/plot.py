@@ -4,10 +4,8 @@
 TODO
 """
 
-import sys
-from itertools import count
 from pathlib import Path
-from typing import Any, List, Optional, Tuple, Union
+from typing import List, Optional, Tuple
 
 import matplotlib.pyplot as plt
 import pandas as pd
@@ -58,7 +56,9 @@ def convert_to_label(df: pd.DataFrame, value: str) -> str:
     return columns[index]
 
 
-def make_column_pairs(df: pd.DataFrame, column_list: List[str]) -> List[Tuple[str, str]]:
+def make_column_pairs(
+    df: pd.DataFrame, column_list: List[str]
+) -> List[Tuple[str, str]]:
     """TODO"""
 
     if not column_list:
@@ -78,7 +78,6 @@ def make_column_pairs(df: pd.DataFrame, column_list: List[str]) -> List[Tuple[st
 
         elif all((item == 2 for item in column_list_items)):
             # X1,Y1 X2,Y2 ... XN,YN
-            share_x = False
             column_pairs = []
             for pair in column_list:
                 x_value, y_value = pair.split(",")
@@ -100,8 +99,8 @@ def make_column_pairs(df: pd.DataFrame, column_list: List[str]) -> List[Tuple[st
 
 
 def load_series(
-        df: pd.DataFrame,
-        column_pairs: List[Tuple[str, str]],
+    df: pd.DataFrame,
+    column_pairs: List[Tuple[str, str]],
 ) -> List[Series]:
     """Load dataframe into series using the columns specified by column list
 
@@ -117,14 +116,8 @@ def load_series(
     cycle = plt.rcParams["axes.prop_cycle"]()
 
     series = [
-        Series(
-            df,
-            x_column,
-            y_column,
-            marker="o",
-            share_x=True,
-            color=next(cycle).get("color"),
-        )
+        Series(df, x_column, y_column,
+            marker="o", color=next(cycle).get("color"))
         for x_column, y_column in column_pairs
     ]
 
@@ -215,7 +208,7 @@ def run(
 
 
 def main() -> None:
-    """Call the app command run """
+    """Call the app command run"""
 
     app = typer.Typer(add_completion=False)
     app.command()(run)

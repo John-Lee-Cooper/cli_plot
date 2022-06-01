@@ -1,5 +1,5 @@
+matplotlib==3.4.3  # 3.5.2 appears to break the interactive
 typer
 pandas
 seaborn
-#numpy
-#matplotlib
+# numpy

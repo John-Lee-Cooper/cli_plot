@@ -30,7 +30,7 @@ from matplotlib.backend_bases import MouseEvent
 
 
 class MouseEventHandlers:
-    """ Collection of mouse event handlers for matplotlib """
+    """Collection of mouse event handlers for matplotlib"""
 
     def __init__(
         self,
@@ -158,7 +158,7 @@ class MouseEventHandlers:
 
 
 def demo() -> None:
-    """ Simple demonstration of pan/zoom mouse events """
+    """Simple demonstration of pan/zoom mouse events"""
 
     x, y, size, color = np.random.rand(4, 200)
     size *= 200

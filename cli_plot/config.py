@@ -55,7 +55,7 @@ class Config:
         assert False, "Cannot delete from config"
 
     def _read(self) -> None:
-        """ Read config contents from json in config file """
+        """Read config contents from json in config file"""
         with open(self._path) as json_file:
             data = json.load(json_file)
 
@@ -69,7 +69,7 @@ class Config:
         self.__dict__["_data"] = data
 
     def _write(self) -> None:
-        """ Write config contents to json in config file """
+        """Write config contents to json in config file"""
         self._path.parent.mkdir(parents=True, exist_ok=True)
         with open(self._path, "w") as json_file:
             json.dump(self._data, json_file, sort_keys=True, indent=4)
