@@ -25,12 +25,7 @@ from .mouse_event_handlers import MouseEventHandlers
 
 __version__ = "0.0.1"
 
-
-class PlotType(str, Enum):
-    """The type of plot to plot. """
-
-    line = "line"
-    scatter = "scatter"
+PlotInfo = namedtuple("PlotInfo", "xlabel ylabel series")
 
 
 class Context(str, Enum):
@@ -135,14 +130,10 @@ class Series:
         y_column: str,
         color: str,
         share_x: bool = True,
-        plot_type: PlotType = PlotType.line,
-        # edge=None,
-        # face=None,
         alpha: float = 0.75,
-        marker: str = "",
-        size: int = 10,
-        min_size: Optional[int] = None,
-        max_size: Optional[int] = None,
+        marker: str = "o",
+        size: int = 0,  # TODO: set
+        width: int = 1,  # TODO: set
     ):
         """
         :param df: xxx
@@ -150,36 +141,28 @@ class Series:
         :param y_column: xxx
         :param color: xxx
         :param share_x: xxx
-        :param plot_type: xxx
-        :param # edge=None,
-        :param # face=None,
         :param alpha: xxx
         :param marker: xxx
         :param size: xxx
-        :param min_size: xxx
-        :param max_size: xxx
+        :param width: xxx
         """
         self.x = df[x_column].values
         self.y = df[y_column].values
-        self.label = y_column if share_x else f"{x_column}, {y_column}"
-        self.share_x = share_x
 
-        self.plot_type = plot_type
+        self.share_x = share_x
+        self.label = y_column if share_x else f"{x_column}, {y_column}"
+
         self.color = color
         self.alpha = alpha
 
         self.marker = marker
         self.size = size
-
-        self.min_size = min_size or size
-        self.max_size = max_size or size
-        # self.edge = edge or color
-        # self.face = face or color
+        self.width = width
 
         self.plotted = None
 
     def draw(
-        self, ax: plt.Axes, show_markers: bool = False, show_values: bool = False
+        self, ax: plt.Axes, show_values: bool = False
     ) -> None:
         """Draw the series using the appropriate plot_type,
         showing markers and values if requested
@@ -189,19 +172,15 @@ class Series:
         :param show_values: Whether to show values next to point
         """
 
-        if self.plot_type == PlotType.line:
-            self.plotted = self.line(ax, show_markers)[0]
-        elif self.plot_type == PlotType.scatter:
-            self.plotted = self.scatter(ax)
+        self.plotted = self.line(ax)[0]
 
         if show_values:
             self.display_values(ax)
 
-    def line(self, ax: plt.Axes, show_markers: bool) -> List:
+    def line(self, ax: plt.Axes) -> List:
         """Draw an x/y line plot
 
         :param ax: Plot Axes.
-        :param show_markers: Whether to show markers
         :returns: the result of ax.plot
         """
 
@@ -211,10 +190,12 @@ class Series:
             label=self.label,
             # color=self.color,
             alpha=self.alpha,
-            marker=self.marker if show_markers else "",
+            marker=self.marker,
             markersize=self.size,
+            linewidth=self.width,
         )
 
+    '''
     def scatter(self, ax: plt.Axes) -> PathCollection:
         """Draw an x/y scatter plot
 
@@ -226,12 +207,11 @@ class Series:
             self.x,
             self.y,
             label=self.label,
-            # edgecolors=self.edge,
-            # facecolor=self.face,
             alpha=self.alpha,
             marker=self.marker,
             s=np.ones_like(self.x) * (self.size * 10),  # ???
         )
+    '''
 
     def display_values(self, ax: plt.Axes) -> None:
         """Draw series values next to points
@@ -264,7 +244,8 @@ class Plot:
         xlabel: Optional[str] = None,
         ylabel: Optional[str] = None,
         show_values: bool = False,
-        show_markers: bool = False,
+        marker_size: int = 0,
+        line_width: int = 1,
     ):
         """
         :param figure: xxx
@@ -275,7 +256,8 @@ class Plot:
         :param xlabel: xxx
         :param ylabel: xxx
         :param show_values: xxx
-        :param show_markers: xxx
+        :param marker_size: xxx
+        :param line_width: xxx
         """
         self.figure = figure or plt.figure()
         self.ax = ax or self.figure.add_subplot(1, 1, 1)
@@ -284,7 +266,8 @@ class Plot:
         self.show_series = []
 
         self.show_values = show_values
-        self.show_markers = show_markers
+        self.marker_size = marker_size
+        self.line_width = line_width
 
         self.xlim = xlim
         self.ylim = ylim
@@ -323,7 +306,7 @@ class Plot:
 
         for index, s in enumerate(self.series):
             visible = self.show_series[index]
-            s.draw(ax, self.show_markers, self.show_values and visible)
+            s.draw(ax, self.show_values and visible)
             s.plotted.set_visible(visible)
 
         if self.xlim:
@@ -378,8 +361,7 @@ class Plot:
 
         :param event: KeyEvent to handle
         """
-
-        # print(f"|{event.key}|")
+        print(event)
 
         if event.key == "escape":  # Quit
             exit_cli()
@@ -402,22 +384,17 @@ class Plot:
                 s.plotted.set_visible(self.show_series[index])
             self.figure.canvas.draw()
 
-        elif event.key == "t":  # Cycle Plot Type
-            for s in self.series:
-                s.plot_type = next_item(list(PlotType), s.plot_type)
-
-            xmin, xmax = self.ax.get_xlim()
-            ymin, ymax = self.ax.get_ylim()
-            self.draw()
-            self.ax.axis(xmin=xmin, xmax=xmax, ymin=ymin, ymax=ymax)
-            self.figure.canvas.draw()
-
         elif event.key == "m":  # Toggle Series Markers
-            self.show_markers = not self.show_markers
-            marker = "o" if self.show_markers else ""
+            self.marker_size = (self.marker_size + 4) % 12
             for s in self.series:
-                if s.plot_type in (PlotType.line,):
-                    s.plotted.set_marker(marker)
+                s.plotted.set_markersize(self.marker_size)
+            self.figure.canvas.draw()
+            return
+
+        elif event.key == "l":  # Toggle Series Lines
+            self.line_width = (self.line_width + 1) % 3
+            for s in self.series:
+                s.plotted.set_linewidth(self.line_width)
             self.figure.canvas.draw()
             return
 
@@ -425,6 +402,9 @@ class Plot:
         #    self.show_values = not self.show_values
         #    self.draw()
         #    self.figure.canvas.draw()
+
+        else:
+            print(f"|{event.key}|")
 
 
 def next_item(ring: List, item: Any) -> Any:
@@ -482,27 +462,9 @@ def convert_to_label(df: pd.DataFrame, value: str) -> str:
     return columns[index]
 
 
-PlotInfo = namedtuple("PlotInfo", "xlabel ylabel series")
+def make_column_pairs(df: pd.DataFrame, column_list: List[str]) -> List[Tuple[str, str]]:
+    """TODO"""
 
-
-def load(
-    df: pd.DataFrame,
-    column_list: List[str],
-    plot_type: PlotType = PlotType.line,
-) -> PlotInfo:
-    """Load dataframe into series using the columns specified by column list
-
-    :param df: The dataframe to load from
-    :param column_list: A list of labels of the columns to load
-    :param plot_type:  The type to assign each series
-    :returns: the xlabel, ylabel and series in a namedtuple
-    """
-
-    # assert column_list, "invalid column_list (len==0)"
-    # assert len(column_list) > 1, "invalid column_list (len<=1)"
-    # assert type(column_list[0]) == int, "invalid column_list (type != int)"
-
-    share_x = True
     if not column_list:
         columns = df.columns.tolist()
         x_column = columns[0]
@@ -538,6 +500,24 @@ def load(
         if y_column not in df:
             exit_cli(f"Invalid column: {y_column}")
 
+    return column_pairs
+
+
+def load_series(
+    df: pd.DataFrame,
+    column_pairs: List[Tuple[str, str]],
+) -> List[Series]:
+    """Load dataframe into series using the columns specified by column list
+
+    :param df: The dataframe to load from
+    :param column_pairs: A list of x/y pairs of columns to load
+    :returns: the xlabel, ylabel and series in a namedtuple
+    """
+
+    # assert column_list, "invalid column_list (len==0)"
+    # assert len(column_list) > 1, "invalid column_list (len<=1)"
+    # assert type(column_list[0]) == int, "invalid column_list (type != int)"
+
     cycle = plt.rcParams["axes.prop_cycle"]()
 
     series = [
@@ -545,19 +525,14 @@ def load(
             df,
             x_column,
             y_column,
-            plot_type=plot_type,
             marker="o",
-            share_x=share_x,
+            share_x=True,
             color=next(cycle).get("color"),
         )
         for x_column, y_column in column_pairs
     ]
 
-    return PlotInfo(
-        xlabel=column_pairs[0][0] if share_x or len(column_pairs) == 1 else "",
-        ylabel=column_pairs[0][1] if len(column_pairs) == 1 else "",
-        series=series,
-    )
+    return series
 
 
 def exit_cli(comment: Optional[str] = None) -> None:
@@ -588,10 +563,26 @@ def version_option() -> bool:
     )
 
 
+def load_data(
+    data_file_path: Path,
+    delimiter=None,
+    header=0,  # int = typer.Option(0, help="Number of rows in data_file header"),
+):
+    df = pd.read_csv(
+        data_file_path,
+        header=header,
+        engine="python",
+        sep=delimiter,
+    )
+    return df
+
+
 def run(
     data_file_path: Path = typer.Argument(default=None, exists=True, dir_okay=False),
     columns: List[str] = typer.Argument(default=None),
-    plot_type: PlotType = typer.Option(PlotType.line, "--type"),
+    data: Optional[List[Path]] = typer.Option(default=None, dir_okay=False),
+    x: Optional[List[str]] = typer.Option(default=None),
+    y: Optional[List[str]] = typer.Option(default=None),
     title: str = "",
     xlabel: str = "",
     ylabel: str = "",
@@ -608,7 +599,7 @@ def run(
         or
           X1,Y1 X2,Y2 ... Xn,Yn
 
-        The column value must either be the index of the column (1..N),
+        The column value must either be the index of the column (1...N),
         or the name of the column.
 
 
@@ -629,33 +620,42 @@ def run(
         Rolling the mouse wheel up and down will zoom out and in where the mouse is.
     """
 
+    df_list = []
+
     if data_file_path:
-        delimiter = None
-        header = 0  # int = typer.Option(0, help="Number of rows in data_file header"),
-        df = pd.read_csv(
-            data_file_path,
-            header=header,
-            engine="python",
-            sep=delimiter,
-        )
+        df_list.append(load_data(data_file_path))
         title = title or data_file_path.stem.replace("_", " ")
-    elif demo:
-        df = demo_df("demo.dat")
+
+    df_list.extend(load_data(data_file_path) for data_file_path in data)
+    if not title:
+        title = ", ".join(d.stem.replace("_", " ") for d in data)
+
+    if demo:
+        df_list = demo_df("demo.dat")
         title = title or "Demo"
-    else:
-        exit_cli("Must specify data file path or use --demo")
+
+    if not df_list:
+        exit_cli("Must specify data file path(s) or use --demo")
 
     if head:
-        exit_cli(df.head(10))
+        exit_cli(df_list[0].head(10))  # FIXME - assumes one df
 
     setup(context)
 
-    plot_info = load(df, columns, plot_type=plot_type)
-    plot1 = Plot(
-        title=title or title,
-        xlabel=xlabel or plot_info.xlabel,
-        ylabel=ylabel or plot_info.ylabel,
-    )
+    if x and y:
+        columns = x + y
+
+    column_pairs = make_column_pairs(df_list[0], columns)  # FIXME - assumes one df
+
+    series = []
+    for df in df_list:
+        series += load_series(df, column_pairs)
+
+    if len(column_pairs) == 1:
+        xlabel, ylabel = column_pairs[0]
+
+    plot_info = PlotInfo(xlabel=xlabel, ylabel=ylabel, series=series)
+    plot1 = Plot(title=title, xlabel=plot_info.xlabel, ylabel=plot_info.ylabel)
     plot1.add(plot_info.series)
     plot1.draw()
     plt.show()
