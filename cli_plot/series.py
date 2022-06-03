@@ -83,7 +83,7 @@ def setup(context: Context = Context.notebook) -> None:
         "grid.color": config.grid_major_color,
         "grid.linestyle": "-",
         "grid.linewidth": config.grid_width,
-        "legend.loc": "best",
+        "legend.loc": "upper right",
         "legend.frameon": False,
         "legend.facecolor": config.legend_face_color,
         "legend.edgecolor": config.legend_edge_color,
@@ -243,8 +243,8 @@ class Plot:
 
         self.xlim = xlim
         self.ylim = ylim
-        self.xlog = False
-        self.ylog = False
+        #self.xlog = False
+        #self.ylog = False
 
         self.title = title
         self.xlabel = xlabel
@@ -293,10 +293,10 @@ class Plot:
         if self.ylabel:
             ax.set_ylabel(self.ylabel)
 
-        if self.xlog:
-            ax.set_xscale("log")
-        if self.ylog:
-            ax.set_yscale("log")
+        # if self.xlog:
+        #     ax.set_xscale("log")
+        # if self.ylog:
+        #     ax.set_yscale("log")
 
         if len(self.series) > 1:
             self.legend()
@@ -328,6 +328,18 @@ class Plot:
         canvas.mpl_disconnect(canvas.manager.key_press_handler_id)
         canvas.mpl_connect("key_release_event", self._on_key_press)
         # canvas.mpl_connect("key_press_event", self._on_key_press)
+
+    def _shift_x(self, amount: float) -> None:
+        left, right = self.ax.set_xlim()
+        delta = (right - left) * amount
+        self.ax.set_xlim(left + delta, right + delta)
+        self.figure.canvas.draw()
+
+    def _shift_y(self, amount: float) -> None:
+        bottom, top = self.ax.set_ylim()
+        delta = (top - bottom) * amount
+        self.ax.set_ylim(bottom + amount, top + amount)
+        self.figure.canvas.draw()
 
     def _on_key_press(self, event: KeyEvent) -> None:
         """Key handler
@@ -368,6 +380,22 @@ class Plot:
             for s in self.series:
                 s.plotted.set_linewidth(self.line_width)
             self.figure.canvas.draw()
+            return
+
+        elif event.key == "left":
+            self._shift_x(0.1)
+            return
+
+        elif event.key == "right":
+            self._shift_x(-0.1)
+            return
+
+        elif event.key == "up":
+            self._shift_y(-0.1)
+            return
+
+        elif event.key == "down":
+            self._shift_y(0.1)
             return
 
         # elif event.key == "v":  # Toggle Value Display

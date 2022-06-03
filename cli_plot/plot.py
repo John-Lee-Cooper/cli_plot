@@ -161,6 +161,10 @@ def run(
         1-9    | Toggle Series 1-9 Display
         enter  | Save Plot to png Image
         escape | Exit
+        left   | Pan left
+        right  | Pan right
+        up     | Pan up
+        down   | Pan down
 
     \b
         Holding the left mouse button down and moving the mouse will pan the plot.
@@ -178,7 +182,7 @@ def run(
         title = ", ".join(d.stem.replace("_", " ") for d in data)
 
     if demo:
-        df_list = demo_df("demo.dat")
+        df_list = [demo_df("demo.dat")]
         title = title or "Demo"
 
     if not df_list:
