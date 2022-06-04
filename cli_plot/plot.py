@@ -66,36 +66,41 @@ def make_column_pairs(
         x_column = columns[0]
         y_columns = columns[1:]
         column_pairs = [(x_column, y_column) for y_column in y_columns]
+        return column_pairs
 
-    else:
-        column_list_items = [len(value.split(",")) for value in column_list]
-        if all((item == 1 for item in column_list_items)):
-            # X Y1 Y2 ... YN
-            column_list = [convert_to_label(df, value) for value in column_list]
-            x_column = column_list[0]
-            y_columns = column_list[1:]
-            column_pairs = [(x_column, y_column) for y_column in y_columns]
+    column_list_items = [len(value.split(",")) for value in column_list]
+    if all((item == 1 for item in column_list_items)):
+        # X Y1 Y2 ... YN
+        column_list = [convert_to_label(df, value) for value in column_list]
+        x_column = column_list[0]
+        y_columns = column_list[1:]
+        column_pairs = [(x_column, y_column) for y_column in y_columns]
+        return column_pairs
 
-        elif all((item == 2 for item in column_list_items)):
-            # X1,Y1 X2,Y2 ... XN,YN
-            column_pairs = []
-            for pair in column_list:
-                x_value, y_value = pair.split(",")
-                x_column = convert_to_label(df, x_value)
-                y_column = convert_to_label(df, y_value)
-                column_pairs.append((x_column, y_column))
+    if all((item == 2 for item in column_list_items)):
+        # X1,Y1 X2,Y2 ... XN,YN
+        column_pairs = []
+        for pair in column_list:
+            x_value, y_value = pair.split(",")
+            x_column = convert_to_label(df, x_value)
+            y_column = convert_to_label(df, y_value)
+            column_pairs.append((x_column, y_column))
+        return column_pairs
 
-        else:
-            exit_cli("ERROR")
+    exit_cli("ERROR")
 
+
+def verify_column_pairs(
+    df: pd.DataFrame,
+    column_pairs: List[Tuple[str, str]]
+):
+    """TODO"""
     # Verify all column indices are valid
     for x_column, y_column in column_pairs:
         if x_column not in df:
             exit_cli(f"Invalid column: {x_column}")
         if y_column not in df:
             exit_cli(f"Invalid column: {y_column}")
-
-    return column_pairs
 
 
 def load_series(
@@ -127,9 +132,10 @@ def load_series(
 def run(
     data_file_path: Path = typer.Argument(default=None, exists=True, dir_okay=False),
     columns: List[str] = typer.Argument(default=None),
-    data: Optional[List[Path]] = typer.Option(default=None, dir_okay=False),
-    x: Optional[List[str]] = typer.Option(default=None),
-    y: Optional[List[str]] = typer.Option(default=None),
+    #columns: str = typer.Argument(default=None),
+    file: Optional[List[Path]] = typer.Option(default=None, dir_okay=False),
+    x: Optional[List[str]] = typer.Option(None, "-x"),
+    y: Optional[List[str]] = typer.Option(None, "-y"),
     title: str = "",
     xlabel: str = "",
     ylabel: str = "",
@@ -177,9 +183,9 @@ def run(
         df_list.append(load_data(data_file_path))
         title = title or data_file_path.stem.replace("_", " ")
 
-    df_list.extend(load_data(data_file_path) for data_file_path in data)
+    df_list.extend(load_data(data_file_path) for data_file_path in file)
     if not title:
-        title = ", ".join(d.stem.replace("_", " ") for d in data)
+        title = ", ".join(f.stem.replace("_", " ") for f in file)
 
     if demo:
         df_list = [demo_df("demo.dat")]
@@ -193,10 +199,10 @@ def run(
 
     setup(context)
 
-    if x and y:
-        columns = x + y
+    #if x and y: columns = x + y
 
     column_pairs = make_column_pairs(df_list[0], columns)  # FIXME - assumes one df
+    verify_column_pairs(df_list[0], column_pairs)
 
     series = []
     for df in df_list:

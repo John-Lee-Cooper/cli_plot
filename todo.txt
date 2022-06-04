@@ -1,13 +1,12 @@
 TODO:
-  * Document parameters (xxx)
-  * Config everything
+  Document parameters (xxx)
+  Config everything
   Legend text same color as line
   Legend line have markers
   Replace print with echo
   Remove type head - no arguments calls pandas head and summary and then prompts
   Set x and y limits (xmin,xmax or xmin,xmax,xinc)
   Plot by index
-  Load from multiple files
   Select Event to zoom
   Z = size
   Z = frame
@@ -15,10 +14,6 @@ TODO:
   Animate
   Autocomplete command line
   Use Header to prompt for columns
-  bitbuck pipeline
-    black
-    mypy
-    pylint
-    pytest
-  Move bitbucket:plot to github:cli_plot
+  bitbuck pipeline (black, mypy, pylint, pytest)
   Load from tcp
+  Select individual series: control line, marker, value
