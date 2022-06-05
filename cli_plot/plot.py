@@ -57,43 +57,34 @@ def convert_to_label(df: pd.DataFrame, value: str) -> str:
 
 
 def make_column_pairs(
-    df: pd.DataFrame, column_list: List[str]
+    df: pd.DataFrame, column_string: Optional[str]
 ) -> List[Tuple[str, str]]:
     """TODO"""
 
-    if not column_list:
+    if not column_string:
         columns = df.columns.tolist()
         x_column = columns[0]
         y_columns = columns[1:]
         column_pairs = [(x_column, y_column) for y_column in y_columns]
         return column_pairs
 
-    column_list_items = [len(value.split(",")) for value in column_list]
-    if all((item == 1 for item in column_list_items)):
-        # X Y1 Y2 ... YN
+    column_pairs = []
+    for column_substring in column_string.split(":"):
+        column_list = column_substring.split(",")
+        if len(column_list) < 2:
+            exit_cli(
+                f"Does not support series without x column yet ({column_substring})"
+            )
+
         column_list = [convert_to_label(df, value) for value in column_list]
         x_column = column_list[0]
         y_columns = column_list[1:]
-        column_pairs = [(x_column, y_column) for y_column in y_columns]
-        return column_pairs
+        column_pairs += [(x_column, y_column) for y_column in y_columns]
 
-    if all((item == 2 for item in column_list_items)):
-        # X1,Y1 X2,Y2 ... XN,YN
-        column_pairs = []
-        for pair in column_list:
-            x_value, y_value = pair.split(",")
-            x_column = convert_to_label(df, x_value)
-            y_column = convert_to_label(df, y_value)
-            column_pairs.append((x_column, y_column))
-        return column_pairs
-
-    exit_cli("ERROR")
+    return column_pairs
 
 
-def verify_column_pairs(
-    df: pd.DataFrame,
-    column_pairs: List[Tuple[str, str]]
-):
+def verify_column_pairs(df: pd.DataFrame, column_pairs: List[Tuple[str, str]]):
     """TODO"""
     # Verify all column indices are valid
     for x_column, y_column in column_pairs:
@@ -121,8 +112,7 @@ def load_series(
     cycle = plt.rcParams["axes.prop_cycle"]()
 
     series = [
-        Series(df, x_column, y_column,
-            marker="o", color=next(cycle).get("color"))
+        Series(df, x_column, y_column, marker="o", color=next(cycle).get("color"))
         for x_column, y_column in column_pairs
     ]
 
@@ -130,12 +120,12 @@ def load_series(
 
 
 def run(
-    data_file_path: Path = typer.Argument(default=None, exists=True, dir_okay=False),
-    columns: List[str] = typer.Argument(default=None),
-    #columns: str = typer.Argument(default=None),
-    file: Optional[List[Path]] = typer.Option(default=None, dir_okay=False),
-    x: Optional[List[str]] = typer.Option(None, "-x"),
-    y: Optional[List[str]] = typer.Option(None, "-y"),
+    data_file_path: Path = typer.Argument(None, exists=True, dir_okay=False),
+    column_string: str = typer.Argument(None),
+    files: List[Path] = typer.Option(None, "--file", exists=True, dir_okay=False),
+    columns: List[str] = typer.Option(None, "--col"),
+    # x: Optional[List[str]] = typer.Option(None, "-x"),
+    # y: Optional[List[str]] = typer.Option(None, "-y"),
     title: str = "",
     xlabel: str = "",
     ylabel: str = "",
@@ -148,9 +138,9 @@ def run(
         Plot will read the DATA_FILE_PATH and plot the data specified by COLUMNS.
 
         COLUMNS must be of the form
-          X Y1 Y2 ... Yn
+          X,Y1,Y2,...,Yn
         or
-          X1,Y1 X2,Y2 ... Xn,Yn
+          X1,Y1:X2,Y2:...:Xn,Yn
 
         The column value must either be the index of the column (1...N),
         or the name of the column.
@@ -183,9 +173,9 @@ def run(
         df_list.append(load_data(data_file_path))
         title = title or data_file_path.stem.replace("_", " ")
 
-    df_list.extend(load_data(data_file_path) for data_file_path in file)
+    df_list.extend(load_data(data_file_path) for data_file_path in files)
     if not title:
-        title = ", ".join(f.stem.replace("_", " ") for f in file)
+        title = ", ".join(f.stem.replace("_", " ") for f in files)
 
     if demo:
         df_list = [demo_df("demo.dat")]
@@ -197,16 +187,27 @@ def run(
     if head:
         exit_cli(df_list[0].head(10))  # FIXME - assumes one df
 
+    column_list = []
+    if column_string:
+        column_list = [column_string]
+    column_list.extend(iter(columns))
+
     setup(context)
 
-    #if x and y: columns = x + y
-
-    column_pairs = make_column_pairs(df_list[0], columns)  # FIXME - assumes one df
-    verify_column_pairs(df_list[0], column_pairs)
-
     series = []
-    for df in df_list:
-        series += load_series(df, column_pairs)
+    if len(column_list) in {0, 1}:
+        df = df_list[0]
+        column_pairs = make_column_pairs(df, column_list[0])
+        verify_column_pairs(df, column_pairs)
+        for df in df_list:
+            series += load_series(df, column_pairs)
+    elif len(column_list) == len(df_list):
+        for df, column_string in zip(df_list, column_list):
+            column_pairs = make_column_pairs(df, column_string)
+            verify_column_pairs(df, column_pairs)
+            series += load_series(df, column_pairs)
+    else:
+        exit_cli("Invalid number of columns")
 
     if len(column_pairs) == 1:
         xlabel, ylabel = column_pairs[0]
