@@ -9,7 +9,7 @@ from typing import List, Optional, Tuple
 
 import matplotlib.pyplot as plt
 import pandas as pd
-import typer
+from typer import Typer, Argument, Option
 
 from .functions import demo_df
 from .series import Context, Plot, Series, setup
@@ -120,18 +120,32 @@ def load_series(
 
 
 def run(
-    data_file_path: Path = typer.Argument(None, exists=True, dir_okay=False),
-    column_string: str = typer.Argument(None),
-    files: List[Path] = typer.Option(None, "--file", exists=True, dir_okay=False),
-    columns: List[str] = typer.Option(None, "--col"),
-    # x: Optional[List[str]] = typer.Option(None, "-x"),
-    # y: Optional[List[str]] = typer.Option(None, "-y"),
-    title: str = "",
-    xlabel: str = "",
-    ylabel: str = "",
-    context: Context = typer.Option(Context.notebook),
-    head: bool = typer.Option(None, help="Display head of data file."),
-    demo: bool = typer.Option(None, help="Generate demo.png and use it."),
+    data_file_path: Path = Argument(
+        None, exists=True, dir_okay=False, help="File to parse for new series"
+    ),
+    column_string: str = Argument(
+        None, help="Columns of file to parse.  See above for series format."
+    ),
+    files: List[Path] = Option(
+        None,
+        "--file",
+        exists=True,
+        dir_okay=False,
+        help="Additional file(s) to parse for new series",
+    ),
+    columns: List[str] = Option(
+        None,
+        "--col",
+        help="Columns of files to parse for new series.  There should be one --file for each --coll.",
+    ),
+    title: str = Option("", help="Title of plot."),
+    xlabel: str = Option("", help="Label for X Axis."),
+    ylabel: str = Option("", help="Label for Y Axis."),
+    x: Optional[Tuple[float, float]] = Option(None, "-x", help="Range for X Axis."),
+    y: Optional[Tuple[float, float]] = Option(None, "-y", help="Range for Y Axis."),
+    head: bool = Option(None, help="Display head of data file."),
+    demo: bool = Option(None, help="Generate a set of sample series."),
+    context: Context = Option(Context.notebook),
     version: bool = version_option(),
 ) -> None:
     """
@@ -166,7 +180,6 @@ def run(
         Holding the left mouse button down and moving the mouse will pan the plot.
         Rolling the mouse wheel up and down will zoom out and in where the mouse is.
     """
-
     df_list = []
 
     if data_file_path:
@@ -187,9 +200,7 @@ def run(
     if head:
         exit_cli(df_list[0].head(10))  # FIXME - assumes one df
 
-    column_list = []
-    if column_string:
-        column_list = [column_string]
+    column_list = [column_string] if column_string else []
     column_list.extend(iter(columns))
 
     setup(context)
@@ -215,13 +226,17 @@ def run(
     plot1 = Plot(title=title, xlabel=xlabel, ylabel=ylabel)
     plot1.add(series)
     plot1.draw()
+    if x:
+        plot1.ax.set_xlim(x[0], x[1])
+    if y:
+        plot1.ax.set_ylim(y[0], y[1])
     plt.show()
 
 
 def main() -> None:
     """Call the app command run"""
 
-    app = typer.Typer(add_completion=False)
+    app = Typer(add_completion=False)
     app.command()(run)
     app()
 
